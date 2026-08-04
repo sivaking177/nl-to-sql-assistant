@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nl-to-sql-assistant"
+version = "0.1.0"
+description = "Natural-language-to-SQL assistant over NYC taxi data, using the Claude API and DuckDB with read-only guardrails"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "duckdb>=1.0",
+    "anthropic>=0.39",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "pydantic>=2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[project.scripts]
+nlsql = "nlsql.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nlsql*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.mypy]
+ignore_missing_imports = true
