@@ -1,0 +1,248 @@
+{
+  "cases": [
+    {
+      "category": "aggregation",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 1
+        },
+        {
+          "type": "value_at_least",
+          "value": 40000
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT COUNT(*) AS total_trips FROM trips",
+      "id": "total-trips",
+      "question": "How many trips are in the dataset?",
+      "reference_sql": "SELECT count(*) FROM trips"
+    },
+    {
+      "category": "aggregation",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 5
+        },
+        {
+          "type": "value_at_most",
+          "value": 40
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT ROUND(AVG(fare_amount), 2) AS avg_fare FROM trips",
+      "id": "average-fare",
+      "question": "What is the average fare amount across all trips?",
+      "reference_sql": "SELECT avg(fare_amount) FROM trips",
+      "tolerance": 0.001
+    },
+    {
+      "category": "ranking",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 5
+        },
+        {
+          "name": "trips",
+          "type": "column_present"
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT PULocationID AS pickup_location, COUNT(*) AS trips FROM trips GROUP BY PULocationID ORDER BY trips DESC LIMIT 5",
+      "id": "top-pickup-locations",
+      "question": "What are the 5 most common pickup locations?",
+      "reference_sql": "SELECT PULocationID, count(*) AS n FROM trips GROUP BY PULocationID ORDER BY n DESC, PULocationID LIMIT 5"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 1000
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT COUNT(*) AS card_trips FROM trips WHERE payment_type = 1",
+      "id": "credit-card-trips",
+      "question": "How many trips were paid for by credit card?",
+      "reference_sql": "SELECT count(*) FROM trips WHERE payment_type = 1"
+    },
+    {
+      "category": "aggregation",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 100000
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT SUM(total_amount) AS revenue FROM trips",
+      "id": "total-revenue",
+      "question": "What is the total revenue from all trips?",
+      "reference_sql": "SELECT sum(total_amount) FROM trips"
+    },
+    {
+      "category": "ranking",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 1
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT CAST(tpep_pickup_datetime AS DATE) AS day, COUNT(*) AS trips FROM trips GROUP BY day ORDER BY trips DESC LIMIT 1",
+      "id": "busiest-day",
+      "question": "Which day in January 2024 had the most trips?",
+      "reference_sql": "SELECT date_trunc('day', tpep_pickup_datetime)::DATE AS d, count(*) AS n FROM trips GROUP BY d ORDER BY n DESC LIMIT 1"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 0.5
+        },
+        {
+          "type": "value_at_most",
+          "value": 20
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT AVG(trip_distance) AS avg_distance FROM trips WHERE passenger_count >= 3",
+      "id": "avg-distance-group-trips",
+      "question": "What is the average trip distance for trips with more than 2 passengers?",
+      "reference_sql": "SELECT avg(trip_distance) FROM trips WHERE passenger_count > 2"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 100
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT COUNT(*) AS jfk_trips FROM trips WHERE PULocationID IN (SELECT LocationID FROM taxi_zones WHERE Zone = 'JFK Airport')",
+      "id": "jfk-pickups",
+      "question": "How many trips started at JFK Airport?",
+      "reference_sql": "SELECT count(*) FROM trips WHERE PULocationID = 132"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 0.5
+        },
+        {
+          "type": "value_at_most",
+          "value": 15
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT AVG(tip_amount) AS avg_tip FROM trips WHERE payment_type = 1",
+      "id": "avg-tip-credit-card",
+      "question": "What is the average tip amount for credit card trips?",
+      "reference_sql": "SELECT avg(tip_amount) FROM trips WHERE payment_type = 1"
+    },
+    {
+      "category": "join",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 5
+        },
+        {
+          "name": "zone",
+          "type": "column_present"
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT z.Zone AS zone, COUNT(*) AS trips FROM trips t JOIN taxi_zones z ON z.LocationID = t.DOLocationID GROUP BY z.Zone ORDER BY trips DESC LIMIT 5",
+      "id": "top-dropoff-zones",
+      "question": "What are the top 5 drop-off zones by number of trips?",
+      "reference_sql": "SELECT Zone, count(*) AS n FROM trips JOIN taxi_zones ON LocationID = DOLocationID GROUP BY Zone ORDER BY n DESC, Zone LIMIT 5"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 100
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT COUNT(*) AS long_trips FROM trips WHERE epoch(tpep_dropoff_datetime - tpep_pickup_datetime) > 3600",
+      "id": "long-trips",
+      "question": "How many trips lasted longer than 60 minutes?",
+      "reference_sql": "SELECT count(*) FROM trips WHERE tpep_dropoff_datetime > tpep_pickup_datetime + INTERVAL 60 MINUTE"
+    },
+    {
+      "category": "ranking",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 1
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT EXTRACT(hour FROM tpep_pickup_datetime) AS hour_of_day, COUNT(*) AS trips FROM trips GROUP BY hour_of_day ORDER BY trips DESC LIMIT 1",
+      "id": "busiest-hour",
+      "question": "What is the busiest hour of the day for pickups?",
+      "reference_sql": "SELECT date_part('hour', tpep_pickup_datetime) AS h, count(*) AS n FROM trips GROUP BY h ORDER BY n DESC LIMIT 1"
+    },
+    {
+      "category": "aggregation",
+      "checks": [
+        {
+          "type": "min_rows",
+          "value": 3
+        },
+        {
+          "name": "payment_type",
+          "type": "column_present"
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT payment_type, AVG(total_amount) AS avg_total FROM trips GROUP BY payment_type ORDER BY payment_type",
+      "id": "avg-total-by-payment-type",
+      "question": "What is the average total amount for each payment type?",
+      "reference_sql": "SELECT payment_type, avg(total_amount) FROM trips GROUP BY payment_type"
+    },
+    {
+      "category": "join",
+      "checks": [
+        {
+          "type": "row_count",
+          "value": 1
+        },
+        {
+          "name": "borough",
+          "type": "column_present"
+        }
+      ],
+      "compare": "rows_unordered",
+      "fake_sql": "SELECT z.Borough AS borough, COUNT(*) AS pickups FROM trips t JOIN taxi_zones z ON z.LocationID = t.PULocationID GROUP BY z.Borough ORDER BY pickups DESC LIMIT 1",
+      "id": "top-pickup-borough",
+      "question": "Which borough has the most pickups?",
+      "reference_sql": "SELECT Borough, count(*) AS n FROM trips JOIN taxi_zones ON LocationID = PULocationID GROUP BY Borough ORDER BY n DESC LIMIT 1"
+    },
+    {
+      "category": "filter",
+      "checks": [
+        {
+          "type": "value_at_least",
+          "value": 10
+        }
+      ],
+      "compare": "scalar",
+      "fake_sql": "SELECT COUNT(*) AS pricey_trips FROM trips WHERE fare_amount > 100",
+      "id": "expensive-trips",
+      "question": "How many trips had a fare over $100?",
+      "reference_sql": "SELECT count(*) FROM trips WHERE fare_amount > 100.0"
+    }
+  ],
+  "description": "Fixed evaluation set for the NL-to-SQL assistant, run against the bundled January 2024 TLC sample (48,601 trips). fake_sql is what the offline FakeLLMClient answers (deliberately different in style from reference_sql); reference_sql is the hand-written ground truth. In live mode the model's own SQL replaces fake_sql. Each case is tagged with a category (aggregation/filter/join/ranking) naming the main skill the question exercises; the harness reports the pass rate per category."
+}
