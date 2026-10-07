@@ -1,0 +1,14 @@
+# Local run of the API service: `docker compose up --build`, then
+#   curl localhost:8000/health
+#   curl -X POST localhost:8000/ask -H 'Content-Type: application/json' \
+#        -d '{"question": "How many trips were paid for by credit card?"}'
+# Without ANTHROPIC_API_KEY the service answers from the offline fake
+# client (the 15 evaluation questions). Pass your key through to go live:
+#   ANTHROPIC_API_KEY=... docker compose up --build
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
